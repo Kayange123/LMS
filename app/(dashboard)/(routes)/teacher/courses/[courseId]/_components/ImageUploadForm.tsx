@@ -2,29 +2,15 @@
 
 import * as z from "zod";
 import axios from "axios";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Pencil, PlusCircle } from "lucide-react";
 import { useState } from "react";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { Course } from "@prisma/client";
 import Image from "next/image";
-import { UploadButton } from "@/lib/uploadthing";
 import { FileUpload } from "@/components/ui/fileUpload";
-import { url } from "inspector";
 
 const titleSchema = z.object({
   imageUrl: z.string().min(3, { message: "Image is required" }),
@@ -37,14 +23,7 @@ interface ImageUploadFormProps {
 const ImageUploadForm = ({ initialData, courseId }: ImageUploadFormProps) => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const form = useForm<z.infer<typeof titleSchema>>({
-    resolver: zodResolver(titleSchema),
-    defaultValues: {
-      imageUrl: initialData?.imageUrl || "",
-    },
-  });
   const toggleEdit = () => setIsEditing((current) => !current);
-  const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (data: z.infer<typeof titleSchema>) => {
     try {
