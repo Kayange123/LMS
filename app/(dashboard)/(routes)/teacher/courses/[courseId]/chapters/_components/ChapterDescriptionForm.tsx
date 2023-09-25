@@ -15,34 +15,42 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Chapter } from "@prisma/client";
+import Editor from "@/components/ui/editor";
+import Preview from "@/components/preview";
 
 const titleSchema = z.object({
-  title: z.string().min(3, { message: "Title is required" }),
+  description: z.string().min(3),
 });
 
-interface TitleFormProps {
-  initialData: {
-    title: string;
-  };
+interface ChapterDescriptionFormProps {
+  initialData: Chapter;
   courseId: string;
+  chapterId: string;
 }
-const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
+const ChapterDescriptionForm = ({
+  initialData,
+  courseId,
+  chapterId,
+}: ChapterDescriptionFormProps) => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const form = useForm<z.infer<typeof titleSchema>>({
     resolver: zodResolver(titleSchema),
-    defaultValues: initialData,
+    defaultValues: {
+      description: initialData?.description || "",
+    },
   });
   const toggleEdit = () => setIsEditing((current) => !current);
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (data: z.infer<typeof titleSchema>) => {
     try {
-      await axios.patch(`/api/courses/${courseId}`, data);
-      toast.success("course updated");
+      await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, data);
+      toast.success("chapter updated");
       toggleEdit();
       router.refresh();
     } catch (error) {
@@ -53,20 +61,30 @@ const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
       <div className="flex font-medium items-center justify-between">
-        <h2>Course title</h2>
+        <h2>Chapter description</h2>
         <Button onClick={toggleEdit} variant={"ghost"}>
           {isEditing ? (
-            "cancel"
+            "Cancel"
           ) : (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit title
+              Edit description
             </>
           )}
         </Button>
       </div>
       {!isEditing ? (
-        <p className="text-sm mt-2">{initialData?.title}</p>
+        <div
+          className={cn(
+            "text-sm mt-2",
+            !initialData?.description && "text-slate-500 italic"
+          )}
+        >
+          {!initialData?.description && "No description provided"}
+          {initialData?.description && (
+            <Preview value={initialData.description} />
+          )}
+        </div>
       ) : (
         <Form {...form}>
           <form
@@ -75,16 +93,12 @@ const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
           >
             <FormField
               control={form.control}
-              name="title"
+              name="description"
               disabled={isSubmitting}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      disabled={isSubmitting}
-                      placeholder="e.g 'Advanced web development'"
-                      {...field}
-                    />
+                    <Editor {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,4 +116,4 @@ const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
   );
 };
 
-export default TitleForm;
+export default ChapterDescriptionForm;

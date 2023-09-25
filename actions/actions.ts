@@ -41,6 +41,18 @@ export const fetchCourses = async (
         createdAt: "desc",
       },
     });
+
+    const cousrseWithProgress: CourseWithProgressWithCategory[] =
+      await Promise.all(
+        courses.map(async (course) => {
+          if (course.purchases.length === 0) {
+            return {
+              ...course,
+              progress: null,
+            };
+          }
+        })
+      );
   } catch (error) {
     throw new Error("Failed to get courses");
   }

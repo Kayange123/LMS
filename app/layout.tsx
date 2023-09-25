@@ -5,6 +5,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 import "./globals.css";
 import ToastProvider from "@/providers/ToastProvider";
+import { ConfettiProvider } from "@/providers/ConfettiProvider";
 
 export const metadata: Metadata = {
   title: "Matrix - LMS",
@@ -20,6 +21,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
+          <ConfettiProvider />
           <ToastProvider />
           {children}
         </body>
