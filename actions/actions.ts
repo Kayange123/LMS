@@ -3,8 +3,8 @@ import { Category, Chapter, Course, UserProgress } from "@prisma/client";
 
 type CourseWithProgressWithCategory = Course & {
   category: Category | null;
-  chapters: Chapter;
-  progress: UserProgress | null;
+  chapters: { id: string }[];
+  progress: number | null;
 };
 
 export const fetchCourses = async (
@@ -51,8 +51,16 @@ export const fetchCourses = async (
               progress: null,
             };
           }
+          const progressPercentage = await fetchProgress(userId, course.id);
+
+          return {
+            ...course,
+            progress: progressPercentage,
+          };
         })
       );
+
+    return cousrseWithProgress;
   } catch (error) {
     throw new Error("Failed to get courses");
   }
