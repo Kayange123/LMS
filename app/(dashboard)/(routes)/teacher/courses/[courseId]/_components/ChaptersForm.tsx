@@ -23,7 +23,7 @@ import { Chapter, Course } from "@prisma/client";
 import ChaptersList from "./ChaptersList";
 
 const courseSchema = z.object({
-  title: z.string().min(5, { message: "title is should be long enough" }),
+  title: z.string().min(5, { message: "title should be long enough" }),
 });
 
 interface ChaptersFormProps {
