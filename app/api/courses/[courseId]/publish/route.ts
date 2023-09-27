@@ -55,6 +55,7 @@ export async function PATCH(
       },
     });
   } catch (error) {
+    console.log("PUBLISH", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
