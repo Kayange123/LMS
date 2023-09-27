@@ -100,8 +100,9 @@ model Purchase {
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
-
    course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, courseId])
 }
 
 model StripeCustomer {

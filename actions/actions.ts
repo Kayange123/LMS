@@ -1,17 +1,124 @@
 import { db } from "@/lib/prismadb";
-import { Category, Chapter, Course, UserProgress } from "@prisma/client";
+import {
+  Category,
+  Chapter,
+  Course,
+  UserProgress,
+  Attachment,
+} from "@prisma/client";
 
-type CourseWithProgressWithCategory = Course & {
+export type CourseWithProgressWithCategory = Course & {
   category: Category | null;
   chapters: { id: string }[];
   progress: number | null;
 };
+type GetCourse = {
+  userId: string;
+  title?: string;
+  categoryId?: string;
+};
 
-export const fetchCourses = async (
-  userId: string,
-  title?: string,
-  categoryId?: string
-): Promise<CourseWithProgressWithCategory[]> => {
+type GetChapterProps = {
+  userId: string;
+  courseId: string;
+  chapterId: string;
+};
+
+export const fetchChapter = async ({
+  userId,
+  courseId,
+  chapterId,
+}: GetChapterProps) => {
+  try {
+    const purchase = await db.purchase.findUnique({
+      where: {
+        userId_courseId: {
+          courseId,
+          userId,
+        },
+      },
+    });
+    const course = await db.course.findUnique({
+      where: {
+        isPublished: true,
+        id: courseId,
+      },
+    });
+    const chapter = await db.chapter.findUnique({
+      where: {
+        id: chapterId,
+        isPublished: true,
+      },
+    });
+    if (!chapter || !course) {
+      throw new Error("Course or chapter not found");
+    }
+
+    let muxData = null;
+    let attachments: Attachment[] = [];
+    let nextChapter: Chapter | null = null;
+    if (purchase) {
+      attachments = await db.attachment.findMany({
+        where: {
+          courseId,
+        },
+      });
+    }
+    if (chapter.isFree || purchase) {
+      muxData = await db.muxData.findUnique({
+        where: {
+          chapterId,
+        },
+      });
+      nextChapter = await db.chapter.findFirst({
+        where: {
+          courseId,
+          isPublished: true,
+          position: {
+            gt: chapter?.position,
+          },
+        },
+        orderBy: {
+          position: "asc",
+        },
+      });
+    }
+    const userProgress = await db.userProgress.findUnique({
+      where: {
+        userId_chapterId: {
+          userId,
+          chapterId,
+        },
+      },
+    });
+
+    return {
+      chapter,
+      course,
+      userProgress,
+      purchase,
+      muxData,
+      attachments,
+      nextChapter,
+    };
+  } catch (error) {
+    return {
+      chapter: null,
+      course: null,
+      muxData: null,
+      attachments: [],
+      nextChapter: null,
+      userProgress: null,
+      purchase: null,
+    };
+  }
+};
+
+export const fetchCourses = async ({
+  userId,
+  title,
+  categoryId,
+}: GetCourse): Promise<CourseWithProgressWithCategory[]> => {
   try {
     const courses = await db.course.findMany({
       where: {
