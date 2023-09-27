@@ -49,7 +49,7 @@ const CourseLayout = async ({
       <div className="hidden md:flex mt-[60px] h-full w-80 flex-col fixed inset-y-0 -z-50">
         <CourseSidebar course={course} userProgress={progress} />
       </div>
-      <main>{children}</main>
+      <main className="md:pl-80">{children}</main>
     </div>
   );
 };
